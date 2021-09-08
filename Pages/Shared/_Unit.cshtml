@@ -1,0 +1,87 @@
+﻿@using OnePageRulesCards.Data
+@using OnePageRulesCards.Services
+
+@model Selection
+
+@inject CharacteristicService CharacteristicService
+@inject ProfileService ProfileService
+@inject RulesService RulesService
+
+@{
+  IEnumerable<Profile> getProfiles(Selection selection, string type = null)
+  {
+    var profiles = new List<Profile>();
+
+    if (selection.Profiles?.Any(p => type == null || p.TypeName == type) == true)
+      profiles.AddRange(selection.Profiles);
+
+    if (selection.Selections?.Any() == true)
+      profiles.AddRange(selection.Selections.SelectMany(s => getProfiles(s, type)));
+
+    return profiles;
+  }
+
+  IEnumerable<IGrouping<string, Profile>> allProfiles = getProfiles(Model)
+    .GroupBy(p => p.TypeName);
+
+  IEnumerable<IGrouping<string, Profile>> nonUnitProfiles = allProfiles
+    .Where(p => p.Key != "Unit" && p.Key != "Model");
+
+  IGrouping<string, Profile> unitProfile = allProfiles
+    .First(grp => grp.Key == "Unit" || grp.Key == "Model");
+}
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h4 class="text-center">@Model.Name</h4>
+
+    <div class="d-flex mb-2" style="justify-content: space-evenly;">
+      <div class="quality">
+        <p>
+          @unitProfile.First().Characteristics.First(c => c.Name.ToLower().StartsWith("qua")).Value
+        </p>
+        <p>QUA</p>
+      </div>
+      <div class="defense">
+        <p class="lead">
+          @unitProfile.First().Characteristics.First(c => c.Name.ToLower().StartsWith("def")).Value
+        </p>
+        <p>DEF</p>
+      </div>
+    </div>
+
+    @foreach (var p in nonUnitProfiles)
+    {
+      <table class="table stats-table">
+        <thead>
+          <tr>
+            <th>@ProfileService.MapName(p.Key)</th>
+            @foreach (Characteristic c in p.First().Characteristics)
+            {
+              <th>@CharacteristicService.MapName(c.Name)</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (Profile profile in p)
+          {
+            <tr>
+              <td>@profile.Name</td>
+              @foreach (Characteristic c in profile.Characteristics)
+              {
+                <td>@c.Value</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @*<partial name="Shared/UnitProfile" model="unitProfiles" />
+      <partial name="Shared/WeaponProfile" model="weaponProfiles" />*@
+    @foreach (var rule in RulesService.FindRulesForUnit(Model))
+    {
+      <p><span style="font-weight: bold;">@rule.Name</span> - @RulesService.ParseRule(rule.Description)</p>
+    }
+  </div>
+</div>
