@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OnePageRulesCards.Data;
 
 namespace OnePageRulesCards.Pages
@@ -23,55 +22,50 @@ namespace OnePageRulesCards.Pages
     {
       _logger = logger;
     }
-    
+
     public Roster Roster { get; set; }
     public IFormFile RosterFile { get; set; }
 
     public async Task OnGet()
     {
-      //var xml = new XmlSerializer(typeof(Roster));
 
-      //if (TEMP_PATH.EndsWith("rosz"))
-      //{
-      //  await using (FileStream file = System.IO.File.OpenRead(TEMP_PATH))
-      //  using (var zip = new ZipArchive(file, ZipArchiveMode.Read))
-      //  {
-      //    if (zip.Entries.Any())
-      //    {
-      //      await using Stream stream = zip.Entries.First().Open();
-      //      Roster = (Roster)xml.Deserialize(stream);
-      //    }
-      //  }
-      //}
-      //else
-      //{
-      //  await using FileStream file = System.IO.File.OpenRead(TEMP_PATH);
-      //  Roster = (Roster)xml.Deserialize(file);
-      //}
-      
     }
 
     public async Task OnPost()
     {
-      var xml = new XmlSerializer(typeof(Roster));
-      
-      if (RosterFile.FileName.EndsWith("rosz"))
+      try
       {
-        await using (Stream file = RosterFile.OpenReadStream())
-        using (var zip = new ZipArchive(file, ZipArchiveMode.Read))
+        // Assume it's a rosz file...
+        await ParseRosz();
+      }
+      catch (Exception)
+      {
+        // ...if this fails, try and parse it as uncompressed ros file
+        await ParseRos();
+      }
+    }
+
+    private async Task ParseRosz()
+    {
+      var xml = new XmlSerializer(typeof(Roster));
+
+      await using (Stream file = RosterFile.OpenReadStream())
+      using (var zip = new ZipArchive(file, ZipArchiveMode.Read))
+      {
+        if (zip.Entries.Any())
         {
-          if (zip.Entries.Any())
-          {
-            await using Stream stream = zip.Entries.First().Open();
-            Roster = (Roster)xml.Deserialize(stream);
-          }
+          await using Stream stream = zip.Entries.First().Open();
+          Roster = (Roster)xml.Deserialize(stream);
         }
       }
-      else
-      {
-        await using Stream file = RosterFile.OpenReadStream();
-        Roster = (Roster)xml.Deserialize(file);
-      }
+    }
+
+    private async Task ParseRos()
+    {
+      var xml = new XmlSerializer(typeof(Roster));
+
+      await using Stream file = RosterFile.OpenReadStream();
+      Roster = (Roster)xml.Deserialize(file);
     }
   }
 }
