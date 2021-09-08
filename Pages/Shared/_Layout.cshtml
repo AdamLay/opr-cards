@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.Reflection
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -34,7 +35,7 @@
 
   <footer class="border-top footer text-muted">
     <div class="container">
-      &copy; 2021 - OPR Cards - <a asp-area="" asp-page="/Privacy">Privacy</a>
+      &copy; @DateTime.Now.Year - OPR Cards - @Assembly.GetExecutingAssembly().GetName().Version
     </div>
   </footer>
 

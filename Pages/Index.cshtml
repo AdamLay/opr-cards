@@ -7,7 +7,7 @@
 @model IndexModel
 @{
   ViewData["Title"] = "Home page";
-  var force = Model.Roster.Forces.FirstOrDefault();
+  Force? force = Model.Roster?.Forces?.FirstOrDefault();
 
   List<Profile> getProfiles(Selection selection, string type = null)
   {
@@ -21,86 +21,88 @@
 
     return profiles;
   }
-
-  List<Rule> getRules(Selection selection)
-  {
-    var rules = new List<Rule>();
-
-    if (selection.Rules?.Any() == true)
-      rules.AddRange(selection.Rules);
-
-    if (selection.Selections?.Any() == true)
-      rules.AddRange(selection.Selections.SelectMany(getRules));
-
-    return rules;
-  }
 }
 
 <div class="container">
-  <div class="row">
-    @foreach (var selection in force.Selections)
-    {
 
-      var allProfiles = getProfiles(selection).GroupBy(p => p.TypeName);
-      var nonUnitProfiles = allProfiles.Where(p => p.Key != "Unit" && p.Key != "Model");
-      var unitProfile = allProfiles.First(grp => grp.Key == "Unit" || grp.Key == "Model");
+  @if (Model.Roster == null)
+  {
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label asp-for="RosterFile" style="font-weight: bold;">Battlescribe Roster File</label>
+        <input asp-for="RosterFile" type="file" accept=".ros,.rosz" class="form-control" style="height: auto;" />
+        <p class="small">Upload a .rosz or .ros Battlescribe roster file for GF/AoF/GFF/AoFS</p>
+      </div>
+      <input type="submit" value="Generate Cards!" class="button button-primary" />
+    </form>
+  }
+  else
+  {
+    <div class="row">
+      @foreach (var selection in force.Selections)
+      {
 
-      <div class="col-6">
-        <div class="card mb-4">
-          <div class="card-body">
-            <h4 class="text-center">@selection.Name</h4>
+        var allProfiles = getProfiles(selection).GroupBy(p => p.TypeName);
+        var nonUnitProfiles = allProfiles.Where(p => p.Key != "Unit" && p.Key != "Model");
+        var unitProfile = allProfiles.First(grp => grp.Key == "Unit" || grp.Key == "Model");
 
-            <div class="d-flex mb-2" style="justify-content: space-evenly;">
-              <div class="quality">
-                <p>
-                  @unitProfile.First().Characteristics.First(c => c.Name.ToLower().StartsWith("qua")).Value
-                </p>
-                <p>QUA</p>
+        <div class="col-6">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h4 class="text-center">@selection.Name</h4>
+
+              <div class="d-flex mb-2" style="justify-content: space-evenly;">
+                <div class="quality">
+                  <p>
+                    @unitProfile.First().Characteristics.First(c => c.Name.ToLower().StartsWith("qua")).Value
+                  </p>
+                  <p>QUA</p>
+                </div>
+                <div class="defense">
+                  <p class="lead">
+                    @unitProfile.First().Characteristics.First(c => c.Name.ToLower().StartsWith("def")).Value
+                  </p>
+                  <p>DEF</p>
+                </div>
               </div>
-              <div class="defense">
-                <p class="lead">
-                  @unitProfile.First().Characteristics.First(c => c.Name.ToLower().StartsWith("def")).Value
-                </p>
-                <p>DEF</p>
-              </div>
-            </div>
 
-            @foreach (var p in nonUnitProfiles)
-            {
-              <table class="table stats-table">
-                <thead>
-                  <tr>
-                    <th>@ProfileService.MapName(p.Key)</th>
-                    @foreach (Characteristic c in p.First().Characteristics)
-                    {
-                      <th>@CharacteristicService.MapName(c.Name)</th>
-                    }
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach (Profile profile in p)
-                  {
+              @foreach (var p in nonUnitProfiles)
+              {
+                <table class="table stats-table">
+                  <thead>
                     <tr>
-                      <td>@profile.Name</td>
-                      @foreach (Characteristic c in profile.Characteristics)
+                      <th>@ProfileService.MapName(p.Key)</th>
+                      @foreach (Characteristic c in p.First().Characteristics)
                       {
-                        <td>@c.Value</td>
+                        <th>@CharacteristicService.MapName(c.Name)</th>
                       }
                     </tr>
-                  }
-                </tbody>
-              </table>
-            }
+                  </thead>
+                  <tbody>
+                    @foreach (Profile profile in p)
+                    {
+                      <tr>
+                        <td>@profile.Name</td>
+                        @foreach (Characteristic c in profile.Characteristics)
+                        {
+                          <td>@c.Value</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
 
-            @*<partial name="Shared/UnitProfile" model="unitProfiles" />
-              <partial name="Shared/WeaponProfile" model="weaponProfiles" />*@
-            @foreach (var rule in RulesService.FindRulesForUnit(selection))
-            {
-              <p><span style="font-weight: bold;">@rule.Name</span> - @RulesService.ParseRule(rule.Description)</p>
-            }
+              @*<partial name="Shared/UnitProfile" model="unitProfiles" />
+                <partial name="Shared/WeaponProfile" model="weaponProfiles" />*@
+              @foreach (var rule in RulesService.FindRulesForUnit(selection))
+              {
+                <p><span style="font-weight: bold;">@rule.Name</span> - @RulesService.ParseRule(rule.Description)</p>
+              }
+            </div>
           </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </div>
