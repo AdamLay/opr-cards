@@ -10,6 +10,7 @@
         "attacks" => "ATK",
         "special rules" => "Rules",
         "psychic spell" => "Effect",
+        "melee" => "-",
         _ => name
       };
     }

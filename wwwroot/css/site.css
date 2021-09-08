@@ -65,6 +65,10 @@ body {
   margin-bottom: 60px;
 }
 
+html, body {
+  font-family: Bitter, serif;
+}
+
 .footer {
   position: absolute;
   bottom: 0;
@@ -81,8 +85,13 @@ p {
   margin-bottom: 0;
 }
 
+.card {
+  border-radius: 0.75rem;
+  background-color: #FAFAFA;
+}
+
 .card-body {
-  padding: 0.5rem;
+  padding: 0.75rem;
 }
 
 .stats-table td, .stats-table th {
@@ -96,11 +105,43 @@ p {
   font-size: 14px;
 }
 
-  .stats-table th {
-    background-color: #FAFAFA;
+.stats-table th {
+  background-color: #F0F0F0;
+}
+
+.stats-table td {
+  background-color: #FFFFFF;
+}
+
+.profile-stat {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  width: 86px;
+  border: 1px solid #BBB;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+  .profile-stat p:first-child {
+    padding: 5px;
+    text-align: center;
+    background-color: #EBEBEB;
+    border-bottom: 1px solid #BBB;
   }
 
-.quality, .defense {
+  .profile-stat p:last-child {
+    text-align: center;
+    font-weight: bold;
+    font-size: 36px;
+    font-weight: bold;
+    background-color: #FAFAFA;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    padding: 5px;
+  }
+/*.profile-stat {
   color: white;
   text-align: center;
   background-repeat: no-repeat;
@@ -108,23 +149,26 @@ p {
   background-size: contain;
 }
 
-  .quality p:first-child,
-  .defense p:first-child {
+  .profile-stat p:first-child {
     font-size: 36px;
     font-weight: bold;
   }
 
-  .quality p:last-child,
-  .defense p:last-child {
+  .profile-stat p:last-child {
     font-weight: bold;
   }
 
-.quality {
-  padding: 28px;
-  background-image: url(../img/hex.svg);
-}
+  .profile-stat.quality {
+    padding: 28px;
+    background-image: url(../img/hex.svg);
+  }
 
-.defense {
-  padding: 20px;
-  background-image: url(../img/shield.svg);
-}
+  .profile-stat.defense {
+    padding: 20px;
+    background-image: url(../img/shield.svg);
+  }
+
+  .profile-stat.toughness {
+    padding: 22px;
+    background-image: url(../img/heart.svg);
+  }*/

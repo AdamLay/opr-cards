@@ -1,6 +1,5 @@
 ﻿@page
 @using OnePageRulesCards.Data
-@using OnePageRulesCards.Services
 @model IndexModel
 @{
   ViewData["Title"] = "Home page";
@@ -17,7 +16,7 @@
         <input asp-for="RosterFile" type="file" class="form-control" style="height: auto;" />
         <p class="small">Upload a .rosz or .ros Battlescribe roster file for GF/AoF/GFF/AoFS</p>
       </div>
-      <input type="submit" value="Generate Cards!" class="button button-primary" />
+      <input type="submit" value="Generate Cards!" class="btn btn-primary" />
     </form>
   }
   else
