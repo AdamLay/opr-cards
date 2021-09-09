@@ -4,13 +4,14 @@
   {
     public string MapName(string name)
     {
-      return name.ToLower() switch
+      return name?.ToLower() switch
       {
         "range" => "RNG",
         "attacks" => "ATK",
         "special rules" => "Rules",
         "psychic spell" => "Effect",
         "melee" => "-",
+        null => "-",
         _ => name
       };
     }

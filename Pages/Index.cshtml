@@ -1,9 +1,11 @@
 ﻿@page
 @using OnePageRulesCards.Data
+@using OnePageRulesCards.Services
+@inject ProfileService ProfileService
+@inject CharacteristicService CharacteristicService
 @model IndexModel
 @{
   ViewData["Title"] = "Home page";
-  Force? force = Model.Roster?.Forces?.FirstOrDefault();
 }
 
 <div class="container">
@@ -21,13 +23,61 @@
   }
   else
   {
-    <div class="row">
-      @foreach (Selection selection in force.Selections)
-      {
-        <div class="col-xs-12 col-lg-6">
-          <partial name="Shared/_Unit" model="selection" />
-        </div>
-      }
-    </div>
+    @foreach (Force force in Model.Roster.Forces)
+    {
+      var profiles = force
+        .Selections
+        .SelectMany(s => ProfileService.GetProfiles(s).GroupBy(p => p.TypeName));
+
+      var spells = profiles.FirstOrDefault(grp => grp.Key.Contains("Spell"));
+
+      <h2>@force.Name</h2>
+      <div class="row">
+
+        @if (spells != null)
+        {
+          <div class="col-xs-12 col-lg-6">
+            <div class="card mb-4">
+              <div class="card-body">
+                <h3 class="text-center" style="font-weight: 500;">@spells.Key</h3>
+                <hr class="mb-0" />
+
+                <table class="table stats-table">
+                  <thead>
+                    <tr>
+                      <th>@ProfileService.MapName(spells.Key)</th>
+                      @foreach (Characteristic c in spells.First().Characteristics)
+                      {
+                        <th>@CharacteristicService.MapName(c.Name)</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach (Profile profile in spells)
+                    {
+                      <tr>
+                        <td style="font-weight: 600; width: 200px;">@profile.Name</td>
+                        @foreach (Characteristic c in profile.Characteristics)
+                        {
+                          <td>@CharacteristicService.MapName(c.Value)</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        }
+
+        @foreach (Selection selection in force.Selections)
+        {
+          <div class="col-xs-12 col-lg-6">
+            <partial name="Shared/_Unit" model="selection" />
+          </div>
+        }
+      </div>
+    }
   }
 </div>

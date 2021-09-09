@@ -8,36 +8,27 @@
 @inject RulesService RulesService
 
 @{
-  IEnumerable<Profile> getProfiles(Selection selection, string type = null)
-  {
-    var profiles = new List<Profile>();
+  IEnumerable<IGrouping<string, Profile>> allProfiles = ProfileService.GetProfiles(Model)
+    ?.GroupBy(p => p.TypeName);
 
-    if (selection.Profiles?.Any(p => type == null || p.TypeName == type) == true)
-      profiles.AddRange(selection.Profiles);
+  IEnumerable<IGrouping<string, Profile>> spellProfiles = allProfiles
+    ?.Where(p => p.Key.Contains("Spell"));
 
-    if (selection.Selections?.Any() == true)
-      profiles.AddRange(selection.Selections.SelectMany(s => getProfiles(s, type)));
-
-    return profiles;
-  }
-
-  IEnumerable<IGrouping<string, Profile>> allProfiles = getProfiles(Model)
-    .GroupBy(p => p.TypeName);
-
-  IEnumerable<IGrouping<string, Profile>> nonUnitProfiles = allProfiles
-    .Where(p => p.Key != "Unit" && p.Key != "Model");
+  IEnumerable<IGrouping<string, Profile>> otherProfiles = allProfiles
+?.Where(p => p.Key != "Unit" && p.Key != "Model" && !p.Key.Contains("Spell"));
 
   Profile? unitProfile = allProfiles
-    .First(grp => grp.Key == "Unit" || grp.Key == "Model")
-    .FirstOrDefault();
-
-  int? toughness = ProfileService.GetToughness(unitProfile);
-  int? psychic = ProfileService.GetPsychic(unitProfile);
+    ?.FirstOrDefault(grp => grp.Key == "Unit" || grp.Key == "Model")
+    ?.FirstOrDefault();
 
   if (unitProfile == null)
   {
     return;
   }
+
+  string specialRules = ProfileService.GetSpecialRules(unitProfile);
+  //int? toughness = ProfileService.GetToughness(unitProfile);
+  //int? psychic = ProfileService.GetPsychic(unitProfile);
 }
 
 <div class="card mb-4">
@@ -82,25 +73,22 @@
           @unitProfile.Characteristics.First(c => c.Name.ToLower().StartsWith("def")).Value
         </p>
       </div>
-
-      @if (toughness.HasValue)
+      
+      @foreach (string rule in new[] { "Tough", "Psychic", "Wizard" })
       {
-        <div class="profile-stat">
-          <p>Tough</p>
-          <p>@toughness</p>
-        </div>
-      }
+        int? value = ProfileService.GetSpecialRuleValue(unitProfile, rule);
 
-      @if (psychic.HasValue)
-      {
-        <div class="profile-stat">
-          <p>Psychic</p>
-          <p>@psychic</p>
-        </div>
+        @if (value.HasValue)
+        {
+          <div class="profile-stat">
+            <p>@rule</p>
+            <p>@value</p>
+          </div>
+        }
       }
     </div>
 
-    @foreach (var p in nonUnitProfiles)
+    @foreach (var p in otherProfiles)
     {
       <table class="table stats-table">
         <thead>
@@ -131,7 +119,10 @@
       <partial name="Shared/WeaponProfile" model="weaponProfiles" />*@
     @foreach (var rule in RulesService.FindRulesForUnit(Model))
     {
-      <p><span style="font-weight: bold;">@rule.Name</span> - @RulesService.ParseRule(rule.Description)</p>
+      <p>
+        <span style="font-weight: bold;">@RulesService.ReplaceNameFromSpecialRules(rule.Name, specialRules)</span>
+        - @RulesService.ParseRule(rule.Description)
+      </p>
     }
   </div>
 </div>

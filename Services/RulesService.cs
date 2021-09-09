@@ -37,5 +37,20 @@ namespace OnePageRulesCards.Services
       int firstFullstop = rule.IndexOf('.');
       return (firstFullstop >= 0 ? rule.Substring(0, firstFullstop+1) : rule).FirstCharToUpper();
     }
+
+    public string ReplaceNameFromSpecialRules(string ruleName, string specialRules)
+    {
+      bool isParameterised = ruleName.IndexOf("(X)") > -1;
+      if (!isParameterised)
+        return ruleName;
+
+      var pattern = new Regex(ruleName.Replace("(X)", @"\((\d+)\)"));
+
+      Match match = pattern.Match(specialRules);
+
+      return match?.Success == true
+        ? match.Groups[0].Value
+        : ruleName;
+    }
   }
 }
